@@ -25,7 +25,7 @@ public class App {
         System.out.println("[Je vous conseille de.. ]");
         System.out.println("Le reste du texte est illisible, donc vous continuez  plus profondément dans la jungle.");
 
-
+        System.out.println();
     }
     public static void afficherPlan(){
 
