@@ -1,85 +1,54 @@
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Scanner;
 
 public class App {
     //░
     //█
+    static Scanner sc=new Scanner(System.in);
     public static void main(String[] args) {
-        afficherIntro();
+
         MainMethod();
 
 
     }
+    public static String FileInUse(){
+        int counter=10;
+        String fileInUse="niveau"+counter+".txt";
+        counter++;
+        return fileInUse;
+
+    }
+
+
+
+
+
 
     public static void MainMethod(){
-        try {
 
-            BufferedReader a = new BufferedReader(new FileReader("niveau1.txt"));
-            BufferedReader b = new BufferedReader(new FileReader("niveau2.txt"));
-            BufferedReader c = new BufferedReader(new FileReader("niveau3.txt"));
-            BufferedReader d = new BufferedReader(new FileReader("niveau4.txt"));
-            BufferedReader e = new BufferedReader(new FileReader("niveau5.txt"));
-            BufferedReader f = new BufferedReader(new FileReader("niveau6.txt"));
-            BufferedReader g = new BufferedReader(new FileReader("niveau7.txt"));
-            BufferedReader h = new BufferedReader(new FileReader("niveau8.txt"));
-            BufferedReader i = new BufferedReader(new FileReader("niveau8.txt"));
-            BufferedReader j = new BufferedReader(new FileReader("niveau9.txt"));
-            BufferedReader k = new BufferedReader(new FileReader("niveau10.txt"));
-            int nbpieceA=nbPieces(a);
-            int nbpieceB=nbPieces(b);
-            int nbpieceC=nbPieces(c);
-            int nbpieceD=nbPieces(d);
-            int nbpieceE=nbPieces(e);
-            int nbpieceF=nbPieces(f);
-            int nbpieceG=nbPieces(g);
-            int nbpieceH=nbPieces(h);
-            int nbpieceI=nbPieces(i);
-            int nbpieceJ=nbPieces(j);
-            int nbpieceK=nbPieces(k);
-            BufferedReader a2 = new BufferedReader(new FileReader("niveau1.txt"));
-            BufferedReader b2 = new BufferedReader(new FileReader("niveau2.txt"));
-            BufferedReader c2 = new BufferedReader(new FileReader("niveau3.txt"));
-            BufferedReader d2 = new BufferedReader(new FileReader("niveau4.txt"));
-            BufferedReader e2 = new BufferedReader(new FileReader("niveau5.txt"));
-            BufferedReader f2 = new BufferedReader(new FileReader("niveau6.txt"));
-            BufferedReader g2 = new BufferedReader(new FileReader("niveau7.txt"));
-            BufferedReader h2 = new BufferedReader(new FileReader("niveau8.txt"));
-            BufferedReader i2 = new BufferedReader(new FileReader("niveau8.txt"));
-            BufferedReader j2 = new BufferedReader(new FileReader("niveau9.txt"));
-            BufferedReader k2 = new BufferedReader(new FileReader("niveau10.txt"));
-            CreationPiecesNiveaux(a2,nbpieceA);
-            /*CreationPiecesNiveaux(b2,nbpieceB);
-            CreationPiecesNiveaux(c2,nbpieceC);
-            CreationPiecesNiveaux(d2,nbpieceD);
-            CreationPiecesNiveaux(e2,nbpieceE);
-            CreationPiecesNiveaux(f2,nbpieceF);
-            CreationPiecesNiveaux(g2,nbpieceG);
-            CreationPiecesNiveaux(h2,nbpieceH);
-            CreationPiecesNiveaux(i2,nbpieceI);
-            CreationPiecesNiveaux(j2,nbpieceJ);
-            CreationPiecesNiveaux(k2,nbpieceK);
+            afficherIntro();
+            String nomfichier=FileInUse();
+            Piece[] a=CreationPiecesNiveaux(nomfichier);
+         for (Piece s: a){
+             System.out.println(s);
+
+        }
+         afficherPlan(a[a.length-1]);
 
 
-             */
 
-        } catch (FileNotFoundException e) {
+        /*} catch (FileNotFoundException e) {
             System.out.println("Le fichier n'a pas ete trouver");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
+         */
 
-    }
-    public static int nbPieces(BufferedReader reader) throws IOException {
-        String read;
-        int nbPiece=-1;
-        while ((read= reader.readLine()) != null) {
-            nbPiece++;
-        }
-        return nbPiece;
+
     }
     public static void afficherIntro(){
         System.out.println("©2023 Gabriel Mikus" + "\u001B[32m");
@@ -207,16 +176,49 @@ public class App {
                 "                                       ╙╢`\n" +
                 "                                        `");
     }
-    public static void afficherPlan(){
+    public static void afficherPlan(Piece niveau){
+
+            String[] puzzle=new String[Integer.parseInt(niveau.getNbLignes())];
+            for (int i=0;i<Integer.parseInt(niveau.getNbLignes());i++){
+                String ligne="";
+                for (int j=0;j<Integer.parseInt(niveau.getNbColones());j++){
+                    if(niveau.getDonnees()[i][j].compareTo("0")==0){
+                        ligne+="░";
+                    }else {
+
+                        ligne += "█";
+
+                    }
+                }
+                puzzle[i]=ligne;
+
+            }
+
+            for(String s:puzzle){
+                System.out.println(s);
+            }
+
+
+
 
     }
-    static void CreationPiecesNiveaux(BufferedReader reader,int nbPieces) {
+    static Piece[] CreationPiecesNiveaux(String nomfichier) {
         try {
-            Piece[] tableauPieces =new Piece[nbPieces];
-            int temp=0;
+            //nb de pieces
+            BufferedReader fichier=new BufferedReader(new FileReader(nomfichier));
             String read;
-            while ((read= reader.readLine()) != null){
-                String[] tab = (read.split("\\|"));
+            int nbPiece=-1;
+            while ((read= fichier.readLine()) != null) {
+                nbPiece++;
+            }
+            Piece[] tableauPieces =new Piece[nbPiece+1];
+            int temp=0;
+            String lire;
+            BufferedReader fichier2=new BufferedReader(new FileReader(nomfichier));
+            while ((lire= fichier2.readLine()) != null){
+                validationLigne(lire);
+                System.out.println(lire);
+                String[] tab = (lire.split("\\|"));
                 String[] tabLC=tab[1].split(",");
                 String L= tabLC[0];
                 String C= tabLC[1];
@@ -228,7 +230,6 @@ public class App {
                         tabDonnees[i][j]= String.valueOf(donnees.charAt(counter));
                         counter++;
                     }
-
                 }
                 for(String[] s:tabDonnees){
                     System.out.println(Arrays.toString(s));
@@ -238,21 +239,60 @@ public class App {
                 if(tab[0].equals("P")) {
                     tableauPieces[temp]=new Piece(L,C,tabDonnees);
                     temp++;
+                    //figure out how to use continue;
 
                 }else if (tab[0].equals("G")){
-                    Niveau a=new Niveau(L,C,tabDonnees);
+                    Piece a=new Piece(L,C,tabDonnees);
+                    tableauPieces[tableauPieces.length-1]=a;
+
+
 
                 }
-
-
-
             }
-
-
+            return tableauPieces;
 
 
         }catch(IOException e){
             throw new RuntimeException(e);
         }
+
+    }
+
+    // A REFORMATTER
+    public static void validationLigne(String line){
+
+        if(line.charAt(0) != 'P' && line.charAt(0) != 'G')
+        {
+            System.err.println("ERREUR: Syntaxe incorrecte dans un des fichiers de niveau");
+            throw new IllegalArgumentException();
+        }
+        if(line.charAt(1) != '|' && line.charAt(5) != '|')
+        {
+            System.err.println("ERREUR: Syntaxe incorrecte dans un des fichiers de niveau");
+            throw new IllegalArgumentException();
+        }
+        if(line.split("\\|").length != 3)
+        {
+            System.err.println("ERREUR: Syntaxe incorrecte dans un des fichiers de niveau");
+            throw new IllegalArgumentException();
+        }
+        if((line.charAt(2) - 48 < 1 && line.charAt(2) - 48 > 9) && (line.charAt(4) - 48 < 1 && line.charAt(4) - 48 > 9))
+        {
+            System.err.println("ERREUR: Syntaxe incorrecte dans un des fichiers de niveau");
+            throw new IllegalArgumentException();
+        }
+        if((line.charAt(2) - 48) * (line.charAt(4) - 48) != line.length() - 6 )
+        {
+            System.err.println("ERREUR: Syntaxe incorrecte dans un des fichiers de niveau");
+            throw new IllegalArgumentException();
+        }
+        for(int i = 6; i < line.length(); i++) {
+            if(line.charAt(i) != '0' && line.charAt(i) != '1')
+            {
+                System.err.println("ERREUR: Syntaxe incorrecte dans un des fichiers de niveau");
+                throw new IllegalArgumentException();
+            }
+        }
+
     }
 }

@@ -1,12 +1,25 @@
 
-public class Piece extends Niveau{
-
+public class Piece{
+    private String nbLignes;
+    private String nbColones;
+    private String[][] donnees;
     Piece(String nbLignes, String nbColones,String[][] donnees){
-        super(nbLignes,nbColones, donnees);
+        this.nbLignes=nbLignes;
+        this.nbColones= nbColones;
+        this.donnees=donnees;
+
 
     }
-    void sex(){
-        System.out.println("sex");
-        System.out.println(nbColones);
+    public String getNbLignes() {
+        return nbLignes;
+    }
+
+    public String getNbColones() {
+        return nbColones;
+    }
+
+    public String[][] getDonnees() {
+        return donnees;
     }
 }
+
