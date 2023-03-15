@@ -15,7 +15,7 @@ public class App {
 
     }
     public static String FileInUse(){
-        int counter=10;
+        int counter=3;
         String fileInUse="niveau"+counter+".txt";
         counter++;
         return fileInUse;
@@ -32,11 +32,10 @@ public class App {
             afficherIntro();
             String nomfichier=FileInUse();
             Piece[] a=CreationPiecesNiveaux(nomfichier);
-         for (Piece s: a){
-             System.out.println(s);
+            String[] puzzle=afficherPlan(a[a.length-1]);
 
-        }
-         afficherPlan(a[a.length-1]);
+
+
 
 
 
@@ -176,33 +175,76 @@ public class App {
                 "                                       ╙╢`\n" +
                 "                                        `");
     }
-    public static void afficherPlan(Piece niveau){
+    public static String[] afficherPlan(Piece piece){
 
-            String[] puzzle=new String[Integer.parseInt(niveau.getNbLignes())];
-            for (int i=0;i<Integer.parseInt(niveau.getNbLignes());i++){
+            String[] puzzle=new String[Integer.parseInt(piece.getNbLignes())+1];
+            int counter=1;
+            char charCounter= 'A';
+            for (int i=0;i<Integer.parseInt(piece.getNbLignes());i++){
                 String ligne="";
-                for (int j=0;j<Integer.parseInt(niveau.getNbColones());j++){
-                    if(niveau.getDonnees()[i][j].compareTo("0")==0){
-                        ligne+="░";
-                    }else {
-
-                        ligne += "█";
-
+                //mettre un numero devant la ligne si tu peux placer une piece sinon ca print un espace
+                boolean isPlayable=false;
+                for(int k=0;k<Integer.parseInt(piece.getNbColones());k++){
+                    if(piece.getDonnees()[i][k].compareTo("0")==0){
+                        isPlayable=true;
                     }
+
                 }
-                puzzle[i]=ligne;
+                if(isPlayable){
+                    ligne+=counter;
+                    counter++;
+                }else{
+                    ligne+="";
+                }
+
+                //mettre un abc selon les truc jouables
+                if(i==0){
+                    String charLigne=" ";
+                    for(int g=0;g<Integer.parseInt(piece.getNbColones());g++){
+                        isPlayable=false;
+                        for(int k=0;k<Integer.parseInt(piece.getNbLignes());k++){
+                            if(piece.getDonnees()[k][g].compareTo("0")==0){
+                                isPlayable=true;
+                            }
+                        }
+                        if(isPlayable){
+                            charLigne+=charCounter;
+                            charCounter++;
+                        }else{
+                            charLigne+=("");
+                        }
+                    }
+                    puzzle[0]= charLigne;
+                }
+
+                // transformer 0 et 1 en caracteres speciaux
+                ligne=BinToChar(ligne,piece,i);
+
+                puzzle[i+1]=ligne;
 
             }
 
             for(String s:puzzle){
                 System.out.println(s);
             }
-
-
-
-
+            return puzzle;
     }
-    static Piece[] CreationPiecesNiveaux(String nomfichier) {
+    public static String BinToChar(String ligne,Piece piece,int i){
+        for (int j=0;j<Integer.parseInt(piece.getNbColones());j++){
+            if(piece.getDonnees()[i][j].compareTo("0")==0){
+                ligne+="░";
+            }else {
+
+                ligne += "█";
+
+            }
+        }
+        return ligne;
+    }
+
+
+
+    public static Piece[] CreationPiecesNiveaux(String nomfichier) {
         try {
             //nb de pieces
             BufferedReader fichier=new BufferedReader(new FileReader(nomfichier));
