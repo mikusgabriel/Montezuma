@@ -15,24 +15,22 @@ public class App {
 
     }
     public static String FileInUse(){
-        int counter=3;
+        int counter=1;
         String fileInUse="niveau"+counter+".txt";
         counter++;
         return fileInUse;
 
     }
-
-
-
-
-
-
     public static void MainMethod(){
 
             afficherIntro();
             String nomfichier=FileInUse();
-            Piece[] a=CreationPiecesNiveaux(nomfichier);
-            String[] puzzle=afficherPlan(a[a.length-1]);
+            Piece[] pieces=CreationPiecesNiveaux(nomfichier);
+            Piece[] piecesFINAL=transformationBinChar(pieces);
+            String[] puzzle=afficherPlan(piecesFINAL[piecesFINAL.length-1]);
+            String[] FINALPUZZLE=affichagePiece(puzzle,piecesFINAL);
+            affichageFINAL(FINALPUZZLE);
+
 
 
 
@@ -185,7 +183,7 @@ public class App {
                 //mettre un numero devant la ligne si tu peux placer une piece sinon ca print un espace
                 boolean isPlayable=false;
                 for(int k=0;k<Integer.parseInt(piece.getNbColones());k++){
-                    if(piece.getDonnees()[i][k].compareTo("0")==0){
+                    if(piece.getDonnees()[i][0].charAt(k)=='0'){
                         isPlayable=true;
                     }
 
@@ -203,7 +201,7 @@ public class App {
                     for(int g=0;g<Integer.parseInt(piece.getNbColones());g++){
                         isPlayable=false;
                         for(int k=0;k<Integer.parseInt(piece.getNbLignes());k++){
-                            if(piece.getDonnees()[k][g].compareTo("0")==0){
+                            if(piece.getDonnees()[k][0].charAt(g)=='0'){
                                 isPlayable=true;
                             }
                         }
@@ -218,8 +216,13 @@ public class App {
                 }
 
                 // transformer 0 et 1 en caracteres speciaux
-                ligne=BinToChar(ligne,piece,i);
-
+                for (int j=0;j<Integer.parseInt(piece.getNbColones());j++){
+                    if(piece.getDonnees()[i][0].charAt(j)=='0'){
+                        ligne+="░";
+                    }else {
+                        ligne += "█";
+                    }
+                }
                 puzzle[i+1]=ligne;
 
             }
@@ -229,77 +232,143 @@ public class App {
             }
             return puzzle;
     }
-    public static String BinToChar(String ligne,Piece piece,int i){
-        for (int j=0;j<Integer.parseInt(piece.getNbColones());j++){
-            if(piece.getDonnees()[i][j].compareTo("0")==0){
-                ligne+="░";
-            }else {
+    public static String[] affichagePiece(String[] puzzle,Piece[] pieces){
+        boolean isComplete=false;
+        int counter=0;
+        int stringCounter=0;
+        int longestPiece=0;
+        for(Piece p:pieces){
+            int temp=0;
+            temp= Integer.parseInt(p.getNbLignes());
+            if(temp>longestPiece){
+                longestPiece=temp;
+            }
+        }
 
-                ligne += "█";
+
+
+        puzzle[counter]+="    Pieces:   ";
+        int[] whenNull=new int[pieces.length-1];
+        while(!isComplete){
+            counter++;
+            puzzle[counter]+="              ";
+            int whenNullCounter=0;
+            for(int i=0;i< pieces.length-1;i++){
+                if(stringCounter<Integer.parseInt(pieces[i].getNbLignes())){
+                    puzzle[counter]+=pieces[i].getDonnees()[stringCounter][0];
+                    whenNull[i]=pieces[i].getDonnees()[stringCounter][0].length();
+                }else{
+                    String string="";
+                    for(int j=0;j<whenNull[whenNullCounter];j++){
+                        string+=" ";
+                    }
+                    puzzle[counter]+=string;
+                }
+                whenNullCounter++;
+                puzzle[counter]+=" ";
+
+            }
+            stringCounter++;
+
+            if(counter==longestPiece){
+                isComplete=true;
 
             }
         }
-        return ligne;
+        return puzzle;
+    }
+    public static void affichageFINAL(String[] puzzle){
+        for(String s:puzzle){
+            System.out.println(s);
+        }
+
     }
 
+    public static Piece[] transformationBinChar(Piece[] pieces){
+        char lettre='z';
+        boolean isUsed=false;
+
+        for (int k=0;k< pieces.length-1;k++){
+            for(int i=0;i< Integer.parseInt(pieces[k].getNbLignes());i++){
+                for (int j=0;j<pieces[k].getDonnees()[i][0].length();j++){
+                    if(pieces[k].getDonnees()[i][0].charAt(j)=='0'){
+                        pieces[k].getDonnees()[i][0]=pieces[k].getDonnees()[i][0].replace('0','░');
+                    }else{
+                        pieces[k].getDonnees()[i][0]=pieces[k].getDonnees()[i][0].replace('1',lettre);
+                        isUsed=true;
+                    }
 
 
+                }
+
+
+
+            }
+            if (isUsed){
+                lettre--;
+            }
+
+
+        }
+        return pieces;
+
+    }
     public static Piece[] CreationPiecesNiveaux(String nomfichier) {
         try {
             //nb de pieces
-            BufferedReader fichier=new BufferedReader(new FileReader(nomfichier));
+            BufferedReader fichier = new BufferedReader(new FileReader(nomfichier));
             String read;
-            int nbPiece=-1;
-            while ((read= fichier.readLine()) != null) {
+            int nbPiece = -1;
+            while ((read = fichier.readLine()) != null) {
                 nbPiece++;
             }
-            Piece[] tableauPieces =new Piece[nbPiece+1];
-            int temp=0;
+            Piece[] tableauPieces = new Piece[nbPiece + 1];
+            int temp = 0;
             String lire;
-            BufferedReader fichier2=new BufferedReader(new FileReader(nomfichier));
-            while ((lire= fichier2.readLine()) != null){
+            BufferedReader fichier2 = new BufferedReader(new FileReader(nomfichier));
+            while ((lire = fichier2.readLine()) != null) {
                 validationLigne(lire);
                 System.out.println(lire);
                 String[] tab = (lire.split("\\|"));
-                String[] tabLC=tab[1].split(",");
-                String L= tabLC[0];
-                String C= tabLC[1];
-                String donnees= tab[2];
-                String[][] tabDonnees=new String[Integer.parseInt(L)][Integer.parseInt(C)];
-                int counter=0;
-                for (int i=0;i< Integer.parseInt(L);i++){
-                    for (int j=0;j<Integer.parseInt(C);j++){
-                        tabDonnees[i][j]= String.valueOf(donnees.charAt(counter));
-                        counter++;
+                String[] tabLC = tab[1].split(",");
+                String L = tabLC[0];
+                String C = tabLC[1];
+                String donnees = tab[2];
+                String[][] tabDonnees = new String[Integer.parseInt(L)][1];
+                int charCounter=0;
+                for (int i = 0; i < Integer.parseInt(L); i++) {
+                    String extraTemp="";
+                    for (int j = 0; j < Integer.parseInt(C); j++) {
+                        extraTemp+= donnees.charAt(charCounter);
+                        charCounter++;
+                        tabDonnees[i][0]=extraTemp;
                     }
                 }
-                for(String[] s:tabDonnees){
-                    System.out.println(Arrays.toString(s));
-                }
-                System.out.println(donnees);
+                for (String[] s : tabDonnees) {
+                        System.out.println(Arrays.toString(s));
+                    }
+                    System.out.println(donnees);
 
-                if(tab[0].equals("P")) {
-                    tableauPieces[temp]=new Piece(L,C,tabDonnees);
+                if (tab[0].equals("P")) {
+                    tableauPieces[temp] = new Piece(L, C, tabDonnees);
                     temp++;
-                    //figure out how to use continue;
-
-                }else if (tab[0].equals("G")){
-                    Piece a=new Piece(L,C,tabDonnees);
-                    tableauPieces[tableauPieces.length-1]=a;
 
 
+                } else if (tab[0].equals("G")) {
+                    Piece a = new Piece(L, C, tabDonnees);
+                    tableauPieces[tableauPieces.length - 1] = a;
 
+
+                    }
                 }
+                return tableauPieces;
+
+
             }
-            return tableauPieces;
-
-
-        }catch(IOException e){
-            throw new RuntimeException(e);
-        }
-
+            catch (IOException e) {
+                throw new RuntimeException(e);
+            }
     }
-
     // A REFORMATTER
     public static void validationLigne(String line){
 

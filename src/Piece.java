@@ -9,6 +9,8 @@ public class Piece{
         this.donnees=donnees;
 
 
+
+
     }
     public String getNbLignes() {
         return nbLignes;
