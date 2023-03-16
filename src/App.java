@@ -2,6 +2,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Scanner;
 
 public class App {
@@ -14,24 +15,47 @@ public class App {
 
 
     }
-    public static String FileInUse(){
-        int counter=1;
+    public static String FileInUse(int counter){
         String fileInUse="niveau"+counter+".txt";
-        counter++;
         return fileInUse;
 
     }
     public static void MainMethod(){
+        boolean isBattu=false;
+        boolean isWon=false;
+        boolean isLost=false;
+        int compteurNiveau=1;
+        afficherIntro();
+        System.out.println();
+        System.out.println("Appuyez sur la touche enter pour continuer");
+        System.out.println();
+        String readString = sc.nextLine();
+        if (readString.equals("")){
+            do {
+                String nomfichier = FileInUse(compteurNiveau);
+                System.out.println("Niveau " + compteurNiveau);
+                System.out.println();
+                Piece[] pieces = CreationPiecesNiveaux(nomfichier);
+                Piece[] piecesFINAL = transformationBinChar(pieces);
+                String[] puzzle = afficherPlan(piecesFINAL[piecesFINAL.length - 1]);
+                String[] FINALPUZZLE = affichagePiece(puzzle, piecesFINAL);
+                affichageFINAL(FINALPUZZLE);
 
-            afficherIntro();
-            String nomfichier=FileInUse();
-            Piece[] pieces=CreationPiecesNiveaux(nomfichier);
-            Piece[] piecesFINAL=transformationBinChar(pieces);
-            String[] puzzle=afficherPlan(piecesFINAL[piecesFINAL.length-1]);
-            String[] FINALPUZZLE=affichagePiece(puzzle,piecesFINAL);
-            affichageFINAL(FINALPUZZLE);
+                if (isBattu) {
+                    compteurNiveau++;
+                }
 
 
+            }while (!isWon&&!isLost);
+            if (isWon){
+                affichageFinJeuWIN();
+
+            } else if (isLost) {
+                affichageFinJeuLOSE();
+
+            }
+
+        }
 
 
 
@@ -65,9 +89,6 @@ public class App {
         System.out.println("[Au fond des ruines Aztecs vous trouverez ce que vous cherchez. Gare à vous, l'aventure ne vas pas être si facile...]");
         System.out.println("[Je vous conseille de.. 陰茎だいすきです]");
         System.out.println("Le reste du texte est illisible, donc vous continuez  plus profondément dans la jungle.");
-
-        affichageFinJeuWIN();
-        affichageFinJeuLOSE();
     }
     public static void affichageFinJeuLOSE(){
         System.out.println("You died");
@@ -175,7 +196,7 @@ public class App {
     }
     public static String[] afficherPlan(Piece piece){
 
-            String[] puzzle=new String[Integer.parseInt(piece.getNbLignes())+1];
+            String[] puzzle=new String[Integer.parseInt(piece.getNbLignes())+3];
             int counter=1;
             char charCounter= 'A';
             for (int i=0;i<Integer.parseInt(piece.getNbLignes());i++){
@@ -197,8 +218,9 @@ public class App {
 
                 //mettre un abc selon les truc jouables
                 if(i==0){
-                    String charLigne=" ";
+                    String charLigne="  ";
                     for(int g=0;g<Integer.parseInt(piece.getNbColones());g++){
+
                         isPlayable=false;
                         for(int k=0;k<Integer.parseInt(piece.getNbLignes());k++){
                             if(piece.getDonnees()[k][0].charAt(g)=='0'){
@@ -214,22 +236,30 @@ public class App {
                     }
                     puzzle[0]= charLigne;
                 }
-
+                //ajouter les bordures du debut
+                String ligneBordureTopBot=" ";
+                for(int p=0;p<Integer.parseInt(piece.getNbColones())+2;p++){
+                    ligneBordureTopBot+="█";
+                }
+                puzzle[1]=ligneBordureTopBot;
+                puzzle[puzzle.length-1]=ligneBordureTopBot;
+                ligne+="█";
                 // transformer 0 et 1 en caracteres speciaux
                 for (int j=0;j<Integer.parseInt(piece.getNbColones());j++){
+
                     if(piece.getDonnees()[i][0].charAt(j)=='0'){
                         ligne+="░";
                     }else {
                         ligne += "█";
                     }
+
                 }
-                puzzle[i+1]=ligne;
+                ligne+="█";
+                puzzle[i+2]=ligne;
 
             }
 
-            for(String s:puzzle){
-                System.out.println(s);
-            }
+
             return puzzle;
     }
     public static String[] affichagePiece(String[] puzzle,Piece[] pieces){
@@ -315,6 +345,9 @@ public class App {
     }
     public static Piece[] CreationPiecesNiveaux(String nomfichier) {
         try {
+            boolean niveauPresent=false;
+            int nb1=0;
+            int nb0=0;
             //nb de pieces
             BufferedReader fichier = new BufferedReader(new FileReader(nomfichier));
             String read;
@@ -328,7 +361,6 @@ public class App {
             BufferedReader fichier2 = new BufferedReader(new FileReader(nomfichier));
             while ((lire = fichier2.readLine()) != null) {
                 validationLigne(lire);
-                System.out.println(lire);
                 String[] tab = (lire.split("\\|"));
                 String[] tabLC = tab[1].split(",");
                 String L = tabLC[0];
@@ -344,30 +376,51 @@ public class App {
                         tabDonnees[i][0]=extraTemp;
                     }
                 }
-                for (String[] s : tabDonnees) {
-                        System.out.println(Arrays.toString(s));
-                    }
-                    System.out.println(donnees);
+
 
                 if (tab[0].equals("P")) {
                     tableauPieces[temp] = new Piece(L, C, tabDonnees);
                     temp++;
-
+                    nb1+=nombreChar(donnees);
+                    nb0+=donnees.length()-nb1;
+                    System.out.println(nb1+" "+nb0);
 
                 } else if (tab[0].equals("G")) {
+                    niveauPresent=true;
                     Piece a = new Piece(L, C, tabDonnees);
                     tableauPieces[tableauPieces.length - 1] = a;
 
 
                     }
                 }
-                return tableauPieces;
+            if (!niveauPresent){
+                System.err.println("ERREUR: puzzle n'est pas présent dans le fichier");
+                throw new IllegalArgumentException();
+            }
+            if(nb1!=nb0){
+                System.err.println("ERREUR: "+nomfichier+"ne peut pas etre resolu" );
+                throw new IllegalArgumentException();
+
+            }
+
+            return tableauPieces;
 
 
             }
             catch (IOException e) {
                 throw new RuntimeException(e);
             }
+    }
+    public static int nombreChar(String ligne){
+        int qtt=0;
+        for (int i=0;i<ligne.length();i++){
+            if(ligne.charAt(i)=='1'){
+                qtt++;
+            }
+        }
+
+        return qtt;
+
     }
     // A REFORMATTER
     public static void validationLigne(String line){
