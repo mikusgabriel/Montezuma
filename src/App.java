@@ -2,18 +2,13 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.sql.SQLOutput;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Scanner;
 
 /* ce quil faut faire demain
 
--arranger un bug ou les pieces ne saffichent pas au complet
+
 -arranger un bug ou les pieces ne saffichent pas sur le plan
-- mieux formatter le loop de jeux
 -mettre les erreurs
--mettre les fichiers
 -jeux dessais
 -javadocs
 
@@ -80,20 +75,20 @@ public class App {
                 for(Piece p:pieces){
                     int temp=0;
                     temp= Integer.parseInt(p.getNbLignes());
-                    if(temp>longestPiece){
+                    if(temp>=longestPiece){
                         longestPiece=temp;
                     }
                 }
-                piece=new String[longestPiece][1];
+                piece=new String[longestPiece+2][1];
                 constat=secondaryGameplayLoop(puzzle,pieces,piece,compteurNiveau);
 
 
-                if (constat) {
+                if (!constat) {
                     compteurNiveau++;
                     if (compteurNiveau>10){
                         isWon=true;
                     }
-                }else{
+                }else if(constat){
                     isLost=true;
                 }
 
@@ -128,69 +123,122 @@ public class App {
 
     public static boolean secondaryGameplayLoop(String[][] puzzle, Piece[] pieces,String[][] piece,int nb){
 
-            boolean isBattu = false;
-            boolean isAbandonner= false;
-            boolean constat =false;
-            String[] commands = null;
+            int constat=0;
+            boolean fin=false;
+            boolean isInput=true;
             String command = "";
-            boolean fileInQueue = false;
             int numOfPiecePlaced = 0;
 
             try{
                 piece = affichagePiece(piece, pieces);
                 puzzle = afficherPlan(puzzle, pieces);
                 affichageFINAL(puzzle,piece);
+                System.out.println("(! pour quitter)>>>");
 
                 do {
 
+                    command = sc.next();
+                    if (command.charAt(0) == '<') {
+                        isInput = false;
+                        String lire = "";
+                        String substring = command.substring(1);
+                        BufferedReader fichier = new BufferedReader(new FileReader("cmd/" + substring));
+                        while ((lire = fichier.readLine()) != null &&numOfPiecePlaced != pieces.length - 1) {
+                            command = lire;
+                            if (Character.isLetter(command.charAt(0))) {
+                                if (1 == command.length()) {
+                                    retraitPiece(command.toLowerCase().charAt(0), puzzle);
+                                    System.out.println(command);
+                                    numOfPiecePlaced--;
+                                } else if (Character.isDigit(command.charAt(2)) && Character.isLetter(command.charAt(1))) {
+                                    char temp = 'z';
+                                    char temp2 = 'a';
+                                    int counter = 0;
+                                    int counter2 = 1;
+                                    while (temp != command.toLowerCase().charAt(0)) {
+                                        temp--;
+                                        counter++;
 
-                    command=sc.next();
-                    if(Character.isLetter(command.charAt(0))){
-                        if(1 == command.length()){
-                            retraitPiece(command.toLowerCase().charAt(0),puzzle);
-                            numOfPiecePlaced--;
-                        }else if(Character.isDigit(command.charAt(2))&&Character.isLetter(command.charAt(1))){
-                            char temp='z';
-                            char temp2='a';
-                            int counter=0;
-                            int counter2=1;
-                            while(temp!=command.toLowerCase().charAt(0)){
-                                temp--;
-                                counter++;
-                                System.out.println(temp);
-                                System.out.println(counter);
 
 
+
+                                    }
+                                    while (temp2 != command.charAt(1)) {
+                                        temp2++;
+                                        counter2++;
+
+
+                                    }
+                                    System.out.println(temp+""+temp2+""+command.charAt(2));
+
+                                    ajoutPiece(counter2, Integer.parseInt(String.valueOf(command.charAt(2))), pieces[counter], puzzle);
+                                    numOfPiecePlaced++;
+                                }
+
+                                affichageFINAL(puzzle, piece);
+                            } else if (command.charAt(0) == '!') {
+                                constat = 1;
                             }
-                            while(temp2!=command.charAt(1)){
-                                temp2++;
-                                counter2++;
-                                System.out.println(temp2);
-
-                            }
-
-                            ajoutPiece(counter2,Integer.parseInt(String.valueOf(command.charAt(2))),pieces[counter],puzzle);
-                            numOfPiecePlaced++;
-                        }if(command.charAt(0)=='!'){
-                            isAbandonner=true;
-
                         }
-                        affichageFINAL(puzzle,piece);
 
                     }
+                    if (isInput) {
+                        if (Character.isLetter(command.charAt(0))) {
+                            if (1 == command.length()) {
+                                retraitPiece(command.toLowerCase().charAt(0), puzzle);
+                                numOfPiecePlaced--;
+                            } else if (Character.isDigit(command.charAt(2)) && Character.isLetter(command.charAt(1))) {
+                                char temp = 'z';
+                                char temp2 = 'a';
+                                int counter = 0;
+                                int counter2 = 1;
+                                while (temp != command.toLowerCase().charAt(0)) {
+                                    temp--;
+                                    counter++;
+                                    System.out.println(temp);
+                                    System.out.println(counter);
 
-                    BufferedReader fichier = new BufferedReader(new FileReader("cmd/cmd" + nb + ".txt"));
+
+                                }
+                                while (temp2 != command.charAt(1)) {
+                                    temp2++;
+                                    counter2++;
+                                    System.out.println(temp2);
+
+                                }
+
+                                ajoutPiece(counter2, Integer.parseInt(String.valueOf(command.charAt(2))), pieces[counter], puzzle);
+                                numOfPiecePlaced++;
+                            }
+
+                            affichageFINAL(puzzle, piece);
+                            System.out.println("(! pour quitter)>>>");
+
+                        } else if (command.charAt(0) == '!') {
+                            constat = 1;
+                        }
+                    }
 
 
-                    if(numOfPiecePlaced==pieces.length-1){
+                    if (numOfPiecePlaced == pieces.length - 1) {
                         System.out.println("Vous avez reussi le niveau!!");
-                        isBattu=true;
+                        System.out.println("(! pour quitter)>>>");
+                        sc.nextLine();
+                        String readString;
+                        do {
+                            readString = sc.nextLine();
+                            if (readString.equals("")) {
+                                constat = 2;
+
+                            }
+
+                        } while (!readString.equals(""));
 
                     }
 
 
 
-                } while (!isBattu&&!isAbandonner);
+                } while (constat==0);
 
             } catch (FileNotFoundException e) {
                 System.err.println("ERREUR: Fichier(s) introuvable(s) " + e.getMessage());
@@ -199,9 +247,9 @@ public class App {
                 System.err.println("ERREUR: Lecture du fichier interrompue " + e.getMessage());
                 System.exit(121);
             }
-            if(isBattu)constat=isBattu;
-            else if (isAbandonner)constat=isAbandonner;
-        return constat ;
+            if(constat==2)fin=false;
+            else if (constat==1)fin=true;
+        return fin ;
     }
 
     /*public static InputType getInputType(String entree, String[][] puzzle, Piece[] pieces) {
@@ -311,37 +359,14 @@ public class App {
         System.out.println("Le reste du texte est illisible, donc vous continuez  plus profondément dans la jungle.");
     }
     public static void affichageFinJeuLOSE(){
-        System.out.println("You died");
-        System.out.println(
-                "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀  ⠀⠀⠀⠀⢀⡤⠖⠛⣻⣿⣻⣿⣿⣶⠶⣤⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n" +
-                "⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡴⠶⣦⡀⠀⠀⠀⠀⠀⠀⢀⡴⢋⣤⠶⣟⣛⣿⡿⠿⣿⣿⣷⡾⣿⣆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n" +
-                "⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣇⣤⣿⡇⠀⠀⠀⠀⠀⢀⡞⣦⣨⣿⡳⠉⢛⣋⣤⣤⣘⣷⣿⡇⣼⣿⣷⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n" +
-                "⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⠉⣿⣭⡇⠀⠀⠀⠀⠀⢸⡁⣿⡟⠉⠉⠓⠻⠿⠿⠟⠛⠉⠀⠀⠉⢫⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n" +
-                "⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⠀⠈⠀⠇⠀⠀⠀⠀⠀⢸⡿⠷⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢨⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n" +
-                "⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣦⣤⡿⣂⠀⠀⠀⠀⠀⠘⣿⣿⡶⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣷⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n" +
-                "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⡇⠙⠋⢸⠀⠀⠀⠀⠀⢀⢿⣿⠁⠀⢀⣀⣤⣀⣀⠆⠀⣀⣤⣴⣶⣾⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n" +
-                "⠀⠀⠀⠀⠀⠀⠀⠀⣠⠤⣿⠀⠀⢸⣀⣀⡀⠀⠀⣿⣻⣻⡂⠚⣫⣽⠿⣻⠟⢁⠀⣿⠛⠛⠹⠛⢿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n" +
-                "⠀⠀⠀⠀⠀⠀⠀⢀⡇⠀⣾⠀⠀⠸⣇⣈⢹⣤⣄⠻⡿⡝⣇⠀⠀⠀⠈⠉⠀⠘⠚⣷⣄⠀⠀⠀⠘⣿⡏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n" +
-                "⠀⠀⠀⠀⠀⠀⠀⣼⠟⠛⣿⠀⠀⠙⢯⠉⠳⣿⠾⣷⡿⣷⢮⢷⡀⠀⠀⣠⠦⣗⠀⣹⣽⣆⠀⠀⢠⡿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n" +
-                "⠀⠀⠀⠀⠀⢀⡞⠉⡇⢸⡟⣆⠀⠀⠀⠀⠀⡤⢧⡈⡇⠈⠻⣆⠙⢤⣼⣯⣀⣈⣛⣿⠿⣯⡗⢀⣾⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n" +
-                "⠀⠀⠀⠀⠀⣿⠛⠀⡇⢶⠀⠸⡄⠀⠀⠀⢸⠁⠀⢹⡇⠀⣰⣿⣄⠈⠃⠙⢿⣦⣤⡴⣾⢿⠇⢸⡿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n" +
-                "⠀⠀⠀⠀⠀⠹⡀⢰⡇⠀⠀⠀⢻⠀⠀⠀⢸⡆⠀⠀⣷⣾⣿⣿⠈⢳⡀⠀⠀⠹⣷⣮⡵⠟⠀⣼⠇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n" +
-                "⠀⠀⠀⠀⠀⠀⡇⠀⠀⠀⠀⠀⠐⠂⠀⠀⠀⠀⠀⠀⢹⣿⣿⣿⣧⡀⠘⠳⣄⠀⠀⠀⠀⢀⡴⣻⠀⠀⠰⣤⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n" +
-                "⠀⠀⠀⠀⠀⠀⠹⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣼⣿⣿⣿⣿⣿⣦⡀⠈⠙⠒⠒⣺⣿⣶⣿⣿⣿⣶⣽⣿⣿⣦⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n" +
-                "⠀⠀⠀⠀⠀⠀⠀⠈⠓⢄⠀⠀⠀⠀⠀⠀⠀⠀⠀⣰⣿⣿⣿⣿⣿⣿⣯⢳⣀⠀⢀⣼⣷⣤⣞⣛⠿⣿⠈⠀⢹⣿⣿⣿⣷⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣀⠀⠀⠀\n" +
-                "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠳⢄⣀⡀⠀⠀⠀⠄⢰⡿⢿⣿⣿⣿⣿⣿⣿⣧⡻⣿⡿⠁⠈⠛⢿⣛⣻⣿⠀⠀⠀⢿⣿⣿⣿⣿⡀⠀⣀⣀⣤⣤⣴⣶⡾⠿⠿⣿⡄⠀⠀\n" +
-                "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢈⣿⠀⠀⣀⣤⠖⠋⣠⣿⣿⣿⣿⣿⣿⣿⣿⣷⡄⠀⠀⠀⠀⠀⢹⠿⢛⣦⣀⣀⣨⣿⣿⣿⣿⣿⡿⢻⣿⣻⣭⣭⣤⣤⣄⠀⣿⣇⠀⠀\n" +
-                "⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣴⡿⠟⠛⠉⠁⣀⣤⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣄⣀⣠⣤⣴⣿⣶⡿⠿⠿⠛⠛⢩⣭⢻⣷⣿⣿⡿⠿⠈⣿⣿⠉⠻⣿⡆⠸⣿⠀⠀\n" +
-                "⠀⠀⠀⠀⠀⠀⠀⠀⠠⣎⣁⣠⣴⣶⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠿⠿⠛⠋⣙⣽⣦⣄⠀⢿⣷⡀⠀⢸⣿⠘⣿⣧⠀⠀⠀⠀⢹⣿⣶⣾⣿⣇⠀⣿⣆⠀\n" +
-                "⠀⠀⠀⠀⠀⠀⠀⠀⠀⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠿⢿⡛⣿⣯⣭⣴⣾⣿⠁⠀⠀⢰⣿⡟⠛⢿⣷⠈⢿⣧⠀⢸⣿⠀⢹⣿⣿⠿⠇⠀⠘⣿⡏⠉⢹⣿⡄⢸⣿⠀\n" +
-                "⠀⠀⠀⢀⣀⣀⣤⣤⣶⣾⡿⠿⢿⠻⠛⠋⣽⣅⠀⠀⢠⣿⣇⠸⣿⡟⠋⠉⠁⠀⠀⠀⠘⣿⡇⠀⠸⣿⡆⠈⢿⣷⣸⣿⠀⠘⣿⣇⢀⣀⣀⡄⢹⣿⡄⠈⠿⠷⠘⣿⡆\n" +
-                "⠰⣶⡿⠿⠛⣛⣫⣉⠉⠀⢠⣾⣿⣿⣷⡄⢸⣿⣷⣤⣾⣿⣿⠀⣿⣷⣤⣶⣦⠀⠀⠀⠀⢿⣿⠀⠀⣿⣧⠀⠈⢿⣿⣿⠀⠀⢿⣿⠿⠿⠛⠃⢈⣋⣤⣤⣴⣶⣶⡿⠇\n" +
-                "⠀⣿⣇⠀⣼⣿⠿⢿⣿⣆⣿⣿⠀⠈⢿⣷⠈⣿⡏⢿⣿⠉⣿⡇⢸⣿⡏⠉⠁⠀⠀⠀⠀⠘⢿⣷⣶⣿⠏⠀⠀⠈⠛⢃⣀⣀⣤⣴⣶⣾⠿⠿⠿⠛⠋⠉⠉⠀⠀⠀⠀\n" +
-                "⠀⠸⣿⠀⢿⣿⠀⠀⢙⣃⠘⣿⣷⣶⣾⣿⡆⢻⣿⠀⠀⠀⢻⣿⠈⣿⣷⣶⣶⣿⠇⠀⠀⠀⢀⣈⣉⣤⣴⣶⣶⠿⠿⠟⠛⠋⠉⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n" +
-                "⠀⠀⣿⡇⢸⣿⡆⢸⣿⣿⡀⢿⣿⠉⠈⣿⣧⠸⣿⣧⠀⠀⠘⠿⡃⢘⣉⣡⣤⣤⣴⣾⠿⠿⠟⠛⠛⠋⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n" +
-                "⠀⠀⢸⣿⠀⢿⣷⣤⣼⣿⠀⠸⣿⠆⠀⠘⣛⣀⣩⣥⣤⣶⣶⣿⠿⠟⠛⠛⠉⠉⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n" +
-                "⠀⠀⠈⣿⡇⠀⠉⠛⣋⣡⣤⣤⣶⣶⣶⠿⠟⠛⠛⠉⠉⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n" +
-                "⠀⠀⠀⢻⣿⣾⠿⠿⠟⠛⠉⠉⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀");
+        System.out.println("Vous etes tombé dans un piège");
+        System.out.println(" ▄▄▄▄▄▄▄ ▄▄▄▄▄▄ ▄▄   ▄▄ ▄▄▄▄▄▄▄    ▄▄▄▄▄▄▄ ▄▄   ▄▄ ▄▄▄▄▄▄▄ ▄▄▄▄▄▄   \n" +
+                            "█       █      █  █▄█  █       █  █       █  █ █  █       █   ▄  █  \n" +
+                            "█   ▄▄▄▄█  ▄   █       █    ▄▄▄█  █   ▄   █  █▄█  █    ▄▄▄█  █ █ █  \n" +
+                            "█  █  ▄▄█ █▄█  █       █   █▄▄▄   █  █ █  █       █   █▄▄▄█   █▄▄█▄ \n" +
+                            "█  █ █  █      █       █    ▄▄▄█  █  █▄█  █       █    ▄▄▄█    ▄▄  █\n" +
+                            "█  █▄▄█ █  ▄   █ ██▄██ █   █▄▄▄   █       ██     ██   █▄▄▄█   █  █ █\n" +
+                            "█▄▄▄▄▄▄▄█▄█ █▄▄█▄█   █▄█▄▄▄▄▄▄▄█  █▄▄▄▄▄▄▄█ █▄▄▄█ █▄▄▄▄▄▄▄█▄▄▄█  █▄█\n");
 
     }
     public static void affichageFinJeuWIN(){
@@ -662,9 +687,10 @@ public class App {
         int nbTrou=0;
         for(int ligne=0; ligne<Integer.parseInt(piece.getNbLignes());ligne++){
             for (int colonne=0;colonne<Integer.parseInt(piece.getNbColonnes());colonne++){
+                if(piece.getDonnees()[ligne][0].charAt(colonne)!='░'){
                 if(puzzle[yInput+1+ligne][0].charAt(xInput+1+colonne)=='░'){
                     nbTrou++;
-                }
+                }}
             }
         }
         if (nbTrou==nbLettre){
