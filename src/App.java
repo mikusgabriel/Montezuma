@@ -91,34 +91,14 @@ public class App {
                 }else if(constat){
                     isLost=true;
                 }
-
-                System.out.println("yeyyeyee");
-
-
             }while (!isWon&&!isLost);
             if (isWon){
                 affichageFinJeuWIN();
 
             } else if (isLost) {
                 affichageFinJeuLOSE();
-
             }
-
         }
-
-
-
-
-
-        /*} catch (FileNotFoundException e) {
-            System.out.println("Le fichier n'a pas ete trouver");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-         */
-
-
     }
 
     public static boolean secondaryGameplayLoop(String[][] puzzle, Piece[] pieces,String[][] piece,int nb){
@@ -170,9 +150,11 @@ public class App {
 
                                     }
                                     System.out.println(temp+""+temp2+""+command.charAt(2));
-
-                                    ajoutPiece(counter2, Integer.parseInt(String.valueOf(command.charAt(2))), pieces[counter], puzzle);
-                                    numOfPiecePlaced++;
+                                    int isThere;
+                                    isThere=ajoutPiece(counter2, Integer.parseInt(String.valueOf(command.charAt(2))), pieces[counter], puzzle);
+                                    if (isThere==2){
+                                        numOfPiecePlaced++;
+                                    }
                                 }
 
                                 affichageFINAL(puzzle, piece);
@@ -195,20 +177,26 @@ public class App {
                                 while (temp != command.toLowerCase().charAt(0)) {
                                     temp--;
                                     counter++;
-                                    System.out.println(temp);
-                                    System.out.println(counter);
+
 
 
                                 }
                                 while (temp2 != command.charAt(1)) {
                                     temp2++;
                                     counter2++;
-                                    System.out.println(temp2);
+
 
                                 }
+                                int isThere;
 
-                                ajoutPiece(counter2, Integer.parseInt(String.valueOf(command.charAt(2))), pieces[counter], puzzle);
-                                numOfPiecePlaced++;
+                                isThere=ajoutPiece(counter2, Integer.parseInt(String.valueOf(command.charAt(2))), pieces[counter], puzzle);
+
+                                if (isThere==2){
+                                    numOfPiecePlaced++;
+                                }
+
+
+
                             }
 
                             affichageFINAL(puzzle, piece);
@@ -221,6 +209,7 @@ public class App {
 
 
                     if (numOfPiecePlaced == pieces.length - 1) {
+                        boolean quitter=false;
                         System.out.println("Vous avez reussi le niveau!!");
                         System.out.println("(! pour quitter)>>>");
                         sc.nextLine();
@@ -230,9 +219,13 @@ public class App {
                             if (readString.equals("")) {
                                 constat = 2;
 
+                            }else if(readString.charAt(0)=='!'){
+                                quitter=true;
+                                constat=1;
+
                             }
 
-                        } while (!readString.equals(""));
+                        } while (!readString.equals("")&&!quitter);
 
                     }
 
@@ -371,7 +364,7 @@ public class App {
     }
     public static void affichageFinJeuWIN(){
         System.out.println("");System.out.println("");System.out.println("");
-        System.out.println("You finally beat all the levels!! You then find a chest and try to open it..");
+        System.out.println("Vous avez enfin trouvé le trésor!! Il y a quelquechose caché dedans...");
         System.out.println("");
         System.out.println("");
         System.out.println("\n" +
@@ -403,7 +396,7 @@ public class App {
                 "                     '╙▓╣╣╨╨╜╜╜╜╜╜╙╙╙`'``");
 
         System.out.println("");System.out.println("");
-        System.out.println("You found a diamond!!!!");
+        System.out.println("WOW un diamand!!!! Vous êtes riche!!!");
         System.out.println("");
         System.out.println("");
         System.out.println("");
@@ -567,7 +560,7 @@ public class App {
                 qtt++;
             }
         }
-        System.out.println("quantite= "+qtt);
+
         return qtt;
 
     }
@@ -644,7 +637,6 @@ public class App {
                     temp++;
                     nb1+=nombreChar(donnees);
                     nb0+=donnees.length()-nb1;
-                    System.out.println(nb1+" "+nb0);
                     lettreAssigner--;
 
                 } else if (tab[0].equals("G")) {
@@ -675,8 +667,10 @@ public class App {
             }
     }
 
-    public static void ajoutPiece(int xInput,int yInput,Piece piece,String[][] puzzle){
+    public static int ajoutPiece(int xInput,int yInput,Piece piece,String[][] puzzle){
         int nbLettre=0;
+        boolean isThere=false;
+        int isPlaced=0;
         for(int ligne=0; ligne<Integer.parseInt(piece.getNbLignes());ligne++){
             for (int colonne=0;colonne<Integer.parseInt(piece.getNbColonnes());colonne++) {
                 if (piece.getDonnees()[ligne][0].charAt(colonne)== piece.getLettre()){
@@ -690,10 +684,14 @@ public class App {
                 if(piece.getDonnees()[ligne][0].charAt(colonne)!='░'){
                 if(puzzle[yInput+1+ligne][0].charAt(xInput+1+colonne)=='░'){
                     nbTrou++;
+                if (puzzle[yInput+1+ligne][0].charAt(xInput+1+colonne)==piece.getLettre()){
+                    isThere=true;
+                }
                 }}
             }
         }
-        if (nbTrou==nbLettre){
+        if (nbTrou==nbLettre&&!isThere){
+            isPlaced=2;
             for(int ligne=0; ligne<Integer.parseInt(piece.getNbLignes());ligne++) {
                 for (int colonne = 0; colonne < Integer.parseInt(piece.getNbColonnes()); colonne++) {
                     if(piece.getDonnees()[ligne][0].charAt(colonne)!='░'){
@@ -707,28 +705,14 @@ public class App {
                 }
             }
 
+        }else{
+            isPlaced=1;
         }
+        return isPlaced;
 
 
     }
-
-    public static boolean verificationWin(String[][] puzzle){
-        boolean isWon=true;
-        for(int i = 0; i < puzzle.length; i++)
-            for (int j = 0; j < puzzle[i][0].length(); j++)
-                if(puzzle[i][0].charAt(j) =='░'){
-                    isWon=false;
-
-
-                }
-
-        return isWon;
-    }
-
     public static void retraitPiece(char letter,String[][] puzzle) {
-
-        System.out.println(puzzle.length);
-        System.out.println(puzzle[0].length);
         for (int i = 0; i < puzzle.length; i++)
             for (int j = 0; j < puzzle[i][0].length(); j++)
                 if (puzzle[i][0].charAt(j) == letter) {
