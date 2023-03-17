@@ -1,12 +1,16 @@
 
 public class Piece{
-    private String nbLignes;
-    private String nbColones;
-    private String[][] donnees;
-    Piece(String nbLignes, String nbColones,String[][] donnees){
+    private final String nbLignes;
+    private final String nbColonnes;
+    private final String[][] donnees;
+
+    private final Character lettre;
+
+    Piece(String nbLignes, String nbColonnes,String[][] donnees,Character lettre){
         this.nbLignes=nbLignes;
-        this.nbColones= nbColones;
+        this.nbColonnes= nbColonnes;
         this.donnees=donnees;
+        this.lettre=lettre;
 
 
 
@@ -16,12 +20,16 @@ public class Piece{
         return nbLignes;
     }
 
-    public String getNbColones() {
-        return nbColones;
+    public String getNbColonnes() {
+        return nbColonnes;
     }
 
     public String[][] getDonnees() {
         return donnees;
+    }
+
+    public Character getLettre() {
+        return lettre;
     }
 }
 

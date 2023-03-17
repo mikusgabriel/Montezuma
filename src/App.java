@@ -1,14 +1,49 @@
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.sql.SQLOutput;
 import java.util.Arrays;
-import java.util.Objects;
+import java.util.HashMap;
 import java.util.Scanner;
+
+/* ce quil faut faire demain
+
+-arranger un bug ou les pieces ne saffichent pas au complet
+-arranger un bug ou les pieces ne saffichent pas sur le plan
+- mieux formatter le loop de jeux
+-mettre les erreurs
+-mettre les fichiers
+-jeux dessais
+-javadocs
+
+
+
+
+
+
+
+
+
+
+
+
+ */
+
+
+
+
+
+
+
 
 public class App {
     //░
     //█
+
     static Scanner sc=new Scanner(System.in);
+
+
     public static void main(String[] args) {
 
         MainMethod();
@@ -21,7 +56,7 @@ public class App {
 
     }
     public static void MainMethod(){
-        boolean isBattu=false;
+        boolean constat=false;
         boolean isWon=false;
         boolean isLost=false;
         int compteurNiveau=1;
@@ -32,18 +67,37 @@ public class App {
         String readString = sc.nextLine();
         if (readString.equals("")){
             do {
+                String[][] puzzle;
+                String[][] piece;
                 String nomfichier = FileInUse(compteurNiveau);
                 System.out.println("Niveau " + compteurNiveau);
                 System.out.println();
                 Piece[] pieces = CreationPiecesNiveaux(nomfichier);
-                Piece[] piecesFINAL = transformationBinChar(pieces);
-                String[] puzzle = afficherPlan(piecesFINAL[piecesFINAL.length - 1]);
-                String[] FINALPUZZLE = affichagePiece(puzzle, piecesFINAL);
-                affichageFINAL(FINALPUZZLE);
+                puzzle= new String[Integer.parseInt(pieces[pieces.length - 1].getNbLignes()) + 3][1];
 
-                if (isBattu) {
-                    compteurNiveau++;
+                //trouver la longueur du tab piece
+                int longestPiece=0;
+                for(Piece p:pieces){
+                    int temp=0;
+                    temp= Integer.parseInt(p.getNbLignes());
+                    if(temp>longestPiece){
+                        longestPiece=temp;
+                    }
                 }
+                piece=new String[longestPiece][1];
+                constat=secondaryGameplayLoop(puzzle,pieces,piece,compteurNiveau);
+
+
+                if (constat) {
+                    compteurNiveau++;
+                    if (compteurNiveau>10){
+                        isWon=true;
+                    }
+                }else{
+                    isLost=true;
+                }
+
+                System.out.println("yeyyeyee");
 
 
             }while (!isWon&&!isLost);
@@ -69,6 +123,172 @@ public class App {
 
          */
 
+
+    }
+
+    public static boolean secondaryGameplayLoop(String[][] puzzle, Piece[] pieces,String[][] piece,int nb){
+
+            boolean isBattu = false;
+            boolean isAbandonner= false;
+            boolean constat =false;
+            String[] commands = null;
+            String command = "";
+            boolean fileInQueue = false;
+            int numOfPiecePlaced = 0;
+
+            try{
+                piece = affichagePiece(piece, pieces);
+                puzzle = afficherPlan(puzzle, pieces);
+                affichageFINAL(puzzle,piece);
+
+                do {
+
+
+                    command=sc.next();
+                    if(Character.isLetter(command.charAt(0))){
+                        if(1 == command.length()){
+                            retraitPiece(command.toLowerCase().charAt(0),puzzle);
+                            numOfPiecePlaced--;
+                        }else if(Character.isDigit(command.charAt(2))&&Character.isLetter(command.charAt(1))){
+                            char temp='z';
+                            char temp2='a';
+                            int counter=0;
+                            int counter2=1;
+                            while(temp!=command.toLowerCase().charAt(0)){
+                                temp--;
+                                counter++;
+                                System.out.println(temp);
+                                System.out.println(counter);
+
+
+                            }
+                            while(temp2!=command.charAt(1)){
+                                temp2++;
+                                counter2++;
+                                System.out.println(temp2);
+
+                            }
+
+                            ajoutPiece(counter2,Integer.parseInt(String.valueOf(command.charAt(2))),pieces[counter],puzzle);
+                            numOfPiecePlaced++;
+                        }if(command.charAt(0)=='!'){
+                            isAbandonner=true;
+
+                        }
+                        affichageFINAL(puzzle,piece);
+
+                    }
+
+                    BufferedReader fichier = new BufferedReader(new FileReader("cmd/cmd" + nb + ".txt"));
+
+
+                    if(numOfPiecePlaced==pieces.length-1){
+                        System.out.println("Vous avez reussi le niveau!!");
+                        isBattu=true;
+
+                    }
+
+
+
+                } while (!isBattu&&!isAbandonner);
+
+            } catch (FileNotFoundException e) {
+                System.err.println("ERREUR: Fichier(s) introuvable(s) " + e.getMessage());
+                System.exit(120);
+             } catch (IOException e) {
+                System.err.println("ERREUR: Lecture du fichier interrompue " + e.getMessage());
+                System.exit(121);
+            }
+            if(isBattu)constat=isBattu;
+            else if (isAbandonner)constat=isAbandonner;
+        return constat ;
+    }
+
+    /*public static InputType getInputType(String entree, String[][] puzzle, Piece[] pieces) {
+
+        if(entree == null)
+        {
+            return InputType.INVALID;
+        }
+        if(entree.isEmpty())
+        {
+            return InputType.INVALID;
+        }
+        if(entree.charAt(0) == '!') //Quitter
+        {
+            return InputType.EXIT;
+        }
+        if(entree.charAt(0) == '<') //Charger ficher
+        {
+            return InputType.LOAD_FILE;
+        }
+        if (entree.length() != 1 && entree.length() != 3)
+        {
+            return InputType.INVALID;
+        }
+        if(!Character.isLetter(entree.charAt(0)))
+        {
+            return InputType.INVALID;
+        }
+        int associatedLetter = 90 - entree.charAt(0);
+
+        if (entree.length() == 1) //Enlever pièce
+        {
+            if(associatedLetter > pieces.length || associatedLetter < 0)
+            {
+                return InputType.INVALID;
+            }
+            if(!pieces.isActive)
+            {
+                return InputType.INVALID;
+            }
+            return InputType.REMOVE;
+        }
+        else //Ajouter pièce
+        {
+            if (!Character.isLetter(entree.charAt(1)) && !Character.isDigit(entree.charAt(2)))
+            {
+                return InputType.INVALID;
+            }
+            int xOfInput = entree.charAt(2) - 49, yOfInput = entree.charAt(1) - 65;
+            System.out.println(entree);
+            System.out.println(associatedLetter);
+            System.out.println(yOfInput + " " + xOfInput);
+
+            if (associatedLetter > pieces.length || associatedLetter < 0)
+            {
+                return InputType.INVALID;
+            }
+            if (xOfInput + pieces[associatedLetter].rowSpan == 0
+                    && yOfInput + pieces[associatedLetter].columnSpan == 0
+                    && xOfInput + pieces[associatedLetter].rowSpan > gameBoard.length
+                    && yOfInput + pieces[associatedLetter].columnSpan > gameBoard[0].length)
+            {
+                return InputType.INVALID;
+            }
+            if (pieces[associatedLetter].isActive)
+            {
+                return InputType.INVALID;
+            }
+            char[][] piece = pieces[associatedLetter].toMatrix();
+            for( int x = 0 ; x < piece.length ; x++)
+                for( int y = 0 ; y < piece[x].length ; y++)
+                    if (piece[x][y] != ' ' && puzzle[x + xOfInput][y + yOfInput] != ' ')
+                    {
+                        return InputType.INVALID;
+                    }
+            return InputType.ADD;
+        }
+    }
+
+
+
+     */
+    public static void actions(String entree){
+        while (!entree.isBlank()) {
+            System.err.println("Veuillez entrer une commande valide!");
+            entree = sc.nextLine();
+        }
 
     }
     public static void afficherIntro(){
@@ -194,17 +414,17 @@ public class App {
                 "                                       ╙╢`\n" +
                 "                                        `");
     }
-    public static String[] afficherPlan(Piece piece){
+    public static String[][] afficherPlan(String[][] puzzle, Piece[] pieces){
 
-            String[] puzzle=new String[Integer.parseInt(piece.getNbLignes())+3];
+
             int counter=1;
             char charCounter= 'A';
-            for (int i=0;i<Integer.parseInt(piece.getNbLignes());i++){
+            for (int i=0;i<Integer.parseInt(pieces[pieces.length-1].getNbLignes());i++){
                 String ligne="";
                 //mettre un numero devant la ligne si tu peux placer une piece sinon ca print un espace
                 boolean isPlayable=false;
-                for(int k=0;k<Integer.parseInt(piece.getNbColones());k++){
-                    if(piece.getDonnees()[i][0].charAt(k)=='0'){
+                for(int k=0;k<Integer.parseInt(pieces[pieces.length-1].getNbColonnes());k++){
+                    if(pieces[pieces.length-1].getDonnees()[i][0].charAt(k)=='0'){
                         isPlayable=true;
                     }
 
@@ -219,11 +439,11 @@ public class App {
                 //mettre un abc selon les truc jouables
                 if(i==0){
                     String charLigne="  ";
-                    for(int g=0;g<Integer.parseInt(piece.getNbColones());g++){
+                    for(int g=0;g<Integer.parseInt(pieces[pieces.length-1].getNbColonnes());g++){
 
                         isPlayable=false;
-                        for(int k=0;k<Integer.parseInt(piece.getNbLignes());k++){
-                            if(piece.getDonnees()[k][0].charAt(g)=='0'){
+                        for(int k=0;k<Integer.parseInt(pieces[pieces.length-1].getNbLignes());k++){
+                            if(pieces[pieces.length-1].getDonnees()[k][0].charAt(g)=='0'){
                                 isPlayable=true;
                             }
                         }
@@ -234,20 +454,20 @@ public class App {
                             charLigne+=("");
                         }
                     }
-                    puzzle[0]= charLigne;
+                    puzzle[i][0]= charLigne;
                 }
                 //ajouter les bordures du debut
                 String ligneBordureTopBot=" ";
-                for(int p=0;p<Integer.parseInt(piece.getNbColones())+2;p++){
+                for(int p=0;p<Integer.parseInt(pieces[pieces.length-1].getNbColonnes())+2;p++){
                     ligneBordureTopBot+="█";
                 }
-                puzzle[1]=ligneBordureTopBot;
-                puzzle[puzzle.length-1]=ligneBordureTopBot;
+                puzzle[1][0]=ligneBordureTopBot;
+                puzzle[puzzle.length-1][0]=ligneBordureTopBot;
                 ligne+="█";
                 // transformer 0 et 1 en caracteres speciaux
-                for (int j=0;j<Integer.parseInt(piece.getNbColones());j++){
+                for (int j=0;j<Integer.parseInt(pieces[pieces.length-1].getNbColonnes());j++){
 
-                    if(piece.getDonnees()[i][0].charAt(j)=='0'){
+                    if(pieces[pieces.length-1].getDonnees()[i][0].charAt(j)=='0'){
                         ligne+="░";
                     }else {
                         ligne += "█";
@@ -255,99 +475,111 @@ public class App {
 
                 }
                 ligne+="█";
-                puzzle[i+2]=ligne;
+                puzzle[i+2][0]=ligne;
 
             }
-
-
             return puzzle;
     }
-    public static String[] affichagePiece(String[] puzzle,Piece[] pieces){
+    public static String[][] affichagePiece(String[][] piece,Piece[] pieces){
         boolean isComplete=false;
         int counter=0;
         int stringCounter=0;
-        int longestPiece=0;
-        for(Piece p:pieces){
-            int temp=0;
-            temp= Integer.parseInt(p.getNbLignes());
-            if(temp>longestPiece){
-                longestPiece=temp;
-            }
-        }
+        transformationBinChar(pieces);
 
 
 
-        puzzle[counter]+="    Pieces:   ";
+        piece[counter][0]="";
+        piece[counter][0]+="    Pieces:   ";
         int[] whenNull=new int[pieces.length-1];
         while(!isComplete){
             counter++;
-            puzzle[counter]+="              ";
+            piece[counter][0]="";
+            piece[counter][0]+="              ";
             int whenNullCounter=0;
             for(int i=0;i< pieces.length-1;i++){
                 if(stringCounter<Integer.parseInt(pieces[i].getNbLignes())){
-                    puzzle[counter]+=pieces[i].getDonnees()[stringCounter][0];
+                    piece[counter][0]+=pieces[i].getDonnees()[stringCounter][0];
                     whenNull[i]=pieces[i].getDonnees()[stringCounter][0].length();
                 }else{
                     String string="";
                     for(int j=0;j<whenNull[whenNullCounter];j++){
                         string+=" ";
                     }
-                    puzzle[counter]+=string;
+
+                    piece[counter][0]+=string;
                 }
                 whenNullCounter++;
-                puzzle[counter]+=" ";
+                piece[counter][0]+=" ";
 
             }
             stringCounter++;
-
-            if(counter==longestPiece){
+            if(stringCounter== piece.length-1){
                 isComplete=true;
-
             }
         }
-        return puzzle;
+
+        return piece;
+
     }
-    public static void affichageFINAL(String[] puzzle){
-        for(String s:puzzle){
-            System.out.println(s);
+    public static void affichageFINAL(String[][] puzzle,String[][] pieces){
+        for(int i=0;i<puzzle.length;i++){
+            if(i<= pieces.length-1){
+                System.out.println(puzzle[i][0]+""+pieces[i][0]);
+
+            }else{
+                System.out.println(puzzle[i][0]);
+            }
+
         }
 
     }
 
-    public static Piece[] transformationBinChar(Piece[] pieces){
-        char lettre='z';
+
+    public static int nombreChar(String ligne){
+        int qtt=0;
+        for (int i=0;i<ligne.length();i++){
+            if(ligne.charAt(i)=='1'){
+                qtt++;
+            }
+        }
+        System.out.println("quantite= "+qtt);
+        return qtt;
+
+    }
+    public static void transformationBinChar(Piece[] pieces){
+
+
         boolean isUsed=false;
 
+        char lettre='z';
+        char special='░';
+
         for (int k=0;k< pieces.length-1;k++){
+
+
+
             for(int i=0;i< Integer.parseInt(pieces[k].getNbLignes());i++){
                 for (int j=0;j<pieces[k].getDonnees()[i][0].length();j++){
                     if(pieces[k].getDonnees()[i][0].charAt(j)=='0'){
-                        pieces[k].getDonnees()[i][0]=pieces[k].getDonnees()[i][0].replace('0','░');
+                        pieces[k].getDonnees()[i][0]=pieces[k].getDonnees()[i][0].replace('0',special);
                     }else{
                         pieces[k].getDonnees()[i][0]=pieces[k].getDonnees()[i][0].replace('1',lettre);
                         isUsed=true;
                     }
-
-
                 }
-
-
-
             }
             if (isUsed){
                 lettre--;
             }
-
-
         }
-        return pieces;
+
 
     }
     public static Piece[] CreationPiecesNiveaux(String nomfichier) {
         try {
             boolean niveauPresent=false;
-            int nb1=0;
-            int nb0=0;
+           int nb1=0;
+           int nb0=0;
             //nb de pieces
             BufferedReader fichier = new BufferedReader(new FileReader(nomfichier));
             String read;
@@ -357,9 +589,13 @@ public class App {
             }
             Piece[] tableauPieces = new Piece[nbPiece + 1];
             int temp = 0;
+            char lettreAssigner='z';
             String lire;
             BufferedReader fichier2 = new BufferedReader(new FileReader(nomfichier));
             while ((lire = fichier2.readLine()) != null) {
+                 nb1=0;
+                 nb0=0;
+
                 validationLigne(lire);
                 String[] tab = (lire.split("\\|"));
                 String[] tabLC = tab[1].split(",");
@@ -379,26 +615,28 @@ public class App {
 
 
                 if (tab[0].equals("P")) {
-                    tableauPieces[temp] = new Piece(L, C, tabDonnees);
+                    tableauPieces[temp] = new Piece(L, C, tabDonnees,lettreAssigner);
                     temp++;
                     nb1+=nombreChar(donnees);
                     nb0+=donnees.length()-nb1;
                     System.out.println(nb1+" "+nb0);
+                    lettreAssigner--;
 
                 } else if (tab[0].equals("G")) {
                     niveauPresent=true;
-                    Piece a = new Piece(L, C, tabDonnees);
+                    Piece a = new Piece(L, C, tabDonnees,null);
                     tableauPieces[tableauPieces.length - 1] = a;
 
 
                     }
+
                 }
             if (!niveauPresent){
                 System.err.println("ERREUR: puzzle n'est pas présent dans le fichier");
                 throw new IllegalArgumentException();
             }
             if(nb1!=nb0){
-                System.err.println("ERREUR: "+nomfichier+"ne peut pas etre resolu" );
+                System.err.println("ERREUR: "+nomfichier+" ne peut pas etre resolu" );
                 throw new IllegalArgumentException();
 
             }
@@ -411,17 +649,70 @@ public class App {
                 throw new RuntimeException(e);
             }
     }
-    public static int nombreChar(String ligne){
-        int qtt=0;
-        for (int i=0;i<ligne.length();i++){
-            if(ligne.charAt(i)=='1'){
-                qtt++;
+
+    public static void ajoutPiece(int xInput,int yInput,Piece piece,String[][] puzzle){
+        int nbLettre=0;
+        for(int ligne=0; ligne<Integer.parseInt(piece.getNbLignes());ligne++){
+            for (int colonne=0;colonne<Integer.parseInt(piece.getNbColonnes());colonne++) {
+                if (piece.getDonnees()[ligne][0].charAt(colonne)== piece.getLettre()){
+                    nbLettre++;
+                }
             }
         }
+        int nbTrou=0;
+        for(int ligne=0; ligne<Integer.parseInt(piece.getNbLignes());ligne++){
+            for (int colonne=0;colonne<Integer.parseInt(piece.getNbColonnes());colonne++){
+                if(puzzle[yInput+1+ligne][0].charAt(xInput+1+colonne)=='░'){
+                    nbTrou++;
+                }
+            }
+        }
+        if (nbTrou==nbLettre){
+            for(int ligne=0; ligne<Integer.parseInt(piece.getNbLignes());ligne++) {
+                for (int colonne = 0; colonne < Integer.parseInt(piece.getNbColonnes()); colonne++) {
+                    if(piece.getDonnees()[ligne][0].charAt(colonne)!='░'){
+                        char[] temp= puzzle[yInput + 1 + ligne][0].toCharArray();
+                        temp[colonne+1+xInput]=piece.getLettre();
+                        puzzle[yInput + 1 + ligne][0]= String.valueOf(temp);
 
-        return qtt;
+
+                    }
+
+                }
+            }
+
+        }
+
 
     }
+
+    public static boolean verificationWin(String[][] puzzle){
+        boolean isWon=true;
+        for(int i = 0; i < puzzle.length; i++)
+            for (int j = 0; j < puzzle[i][0].length(); j++)
+                if(puzzle[i][0].charAt(j) =='░'){
+                    isWon=false;
+
+
+                }
+
+        return isWon;
+    }
+
+    public static void retraitPiece(char letter,String[][] puzzle) {
+
+        System.out.println(puzzle.length);
+        System.out.println(puzzle[0].length);
+        for (int i = 0; i < puzzle.length; i++)
+            for (int j = 0; j < puzzle[i][0].length(); j++)
+                if (puzzle[i][0].charAt(j) == letter) {
+                    puzzle[i][0] = puzzle[i][0].replace(letter, '░');
+                    ;
+
+                }
+
+    }
+
     // A REFORMATTER
     public static void validationLigne(String line){
 
@@ -458,5 +749,12 @@ public class App {
             }
         }
 
+    }
+    enum InputType {
+        INVALID,
+        EXIT,
+        ADD,
+        REMOVE,
+        LOAD_FILE
     }
 }
